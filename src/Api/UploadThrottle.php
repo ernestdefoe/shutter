@@ -31,8 +31,10 @@ class UploadThrottle
             return false;
         }
 
-        $key = 'shutter-uploads:'.$actor->id.':'.intdiv(time(), 60);
-        $this->cache->add($key, 0, 120);
+        // A minute from the member's first upload, not the clock's minute: a
+        // clock window lets twice the limit through either side of :00.
+        $key = 'shutter-uploads:'.$actor->id;
+        $this->cache->add($key, 0, 60);
 
         return $this->cache->increment($key) > self::PER_MINUTE;
     }
