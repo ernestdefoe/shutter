@@ -92,13 +92,15 @@ export default class ContestState {
     this.busy.add(entry.id);
     const request = api<{ data: { voted: boolean; votesUsed: number; votes: number | null } }>(undo ? 'DELETE' : 'POST', `/entries/${entry.id}/vote`);
 
-    request.then(
-      ({ data }) => this.applyVote(entry.id, data),
-      () => {}
-    ).finally(() => {
-      this.busy.delete(entry.id);
-      m.redraw();
-    });
+    request
+      .then(
+        ({ data }) => this.applyVote(entry.id, data),
+        () => {}
+      )
+      .finally(() => {
+        this.busy.delete(entry.id);
+        m.redraw();
+      });
   }
 
   private applyVote(id: number, data: { voted: boolean; votesUsed: number; votes: number | null }) {
@@ -113,9 +115,12 @@ export default class ContestState {
   score(entry: Entry, score: number | null) {
     this.busy.add(entry.id);
     api<{ data: { myScore: number | null } }>('PUT', `/entries/${entry.id}/score`, { score })
-      .then(({ data }) => {
-        entry.myScore = data.myScore;
-      }, () => {})
+      .then(
+        ({ data }) => {
+          entry.myScore = data.myScore;
+        },
+        () => {}
+      )
       .finally(() => {
         this.busy.delete(entry.id);
         m.redraw();

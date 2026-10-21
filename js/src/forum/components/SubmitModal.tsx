@@ -55,7 +55,11 @@ export default class SubmitModal extends FormModal<Attrs> {
 
     this.file = file;
     this.preview = URL.createObjectURL(file);
-    if (!this.photoTitle) this.photoTitle = file.name.replace(/\.[a-z0-9]+$/i, '').replace(/[_-]+/g, ' ').slice(0, 100);
+    if (!this.photoTitle)
+      this.photoTitle = file.name
+        .replace(/\.[a-z0-9]+$/i, '')
+        .replace(/[_-]+/g, ' ')
+        .slice(0, 100);
   }
 
   content() {
@@ -84,16 +88,35 @@ export default class SubmitModal extends FormModal<Attrs> {
 
         <div className="Form-group">
           <label for="shutter-title">{t('submit.photo_title')}</label>
-          <input id="shutter-title" className="FormControl" maxlength={100} required value={this.photoTitle} oninput={(e: InputEvent) => (this.photoTitle = (e.target as HTMLInputElement).value)} />
+          <input
+            id="shutter-title"
+            className="FormControl"
+            maxlength={100}
+            required
+            value={this.photoTitle}
+            oninput={(e: InputEvent) => (this.photoTitle = (e.target as HTMLInputElement).value)}
+          />
         </div>
         <div className="Form-group">
           <label for="shutter-caption">{t('submit.caption')}</label>
-          <textarea id="shutter-caption" className="FormControl" maxlength={500} rows={3} value={this.caption} oninput={(e: InputEvent) => (this.caption = (e.target as HTMLTextAreaElement).value)} />
+          <textarea
+            id="shutter-caption"
+            className="FormControl"
+            maxlength={500}
+            rows={3}
+            value={this.caption}
+            oninput={(e: InputEvent) => (this.caption = (e.target as HTMLTextAreaElement).value)}
+          />
         </div>
         <p className="helpText">{t('submit.privacy')}</p>
 
         <div className="Form-group">
-          <Button type="submit" className="Button Button--primary Button--block" loading={this.loading} disabled={!this.file || !this.photoTitle.trim()}>
+          <Button
+            type="submit"
+            className="Button Button--primary Button--block"
+            loading={this.loading}
+            disabled={!this.file || !this.photoTitle.trim()}
+          >
             {t('submit.send')}
           </Button>
         </div>
@@ -124,7 +147,10 @@ export default class SubmitModal extends FormModal<Attrs> {
           this.attrs.gallery.view = 'all';
           this.attrs.gallery.sort = 'newest';
           this.attrs.gallery.load();
-          app.alerts.show({ type: 'success' }, t(this.attrs.gallery.contest!.moderateEntries && !this.attrs.gallery.contest!.canManage ? 'submit.pending' : 'submit.done'));
+          app.alerts.show(
+            { type: 'success' },
+            t(this.attrs.gallery.contest!.moderateEntries && !this.attrs.gallery.contest!.canManage ? 'submit.pending' : 'submit.done')
+          );
         },
         (error) => {
           this.loading = false;

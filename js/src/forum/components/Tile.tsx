@@ -44,6 +44,11 @@ export default class Tile extends Component<Attrs> {
     const { gallery, entry } = this.attrs;
     const count = entry.votes !== undefined ? <span className="Shutter-voteCount">{entry.votes}</span> : null;
 
+    // A judge sees which photos they have scored.
+    if (entry.myScore !== undefined) {
+      return entry.myScore ? <span className="Shutter-myScore">{t('entry.my_score', { score: entry.myScore })}</span> : null;
+    }
+
     if (!gallery.canVote(entry)) {
       return count ? (
         <span className="Shutter-voteStatic">

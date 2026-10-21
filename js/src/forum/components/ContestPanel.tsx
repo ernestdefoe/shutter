@@ -49,7 +49,10 @@ export default class ContestPanel extends Component<Attrs> {
     const id = this.attrs.contestId;
     if (!states.has(id)) states.set(id, new ContestState(id));
     this.gallery = states.get(id)!;
-    this.gallery.load().then(() => this.deepLink(), () => {});
+    this.gallery.load().then(
+      () => this.deepLink(),
+      () => {}
+    );
 
     // Countdowns tick; when a deadline passes, the contest is fetched again
     // so the page moves to the next phase without a reload.
@@ -72,7 +75,10 @@ export default class ContestPanel extends Component<Attrs> {
     const index = list.findIndex((e) => e.id === id);
     if (index >= 0) return openLightbox(this.gallery, list, index);
 
-    api<{ data: Entry }>('GET', `/entries/${id}`).then(({ data }) => openLightbox(this.gallery, [data], 0), () => {});
+    api<{ data: Entry }>('GET', `/entries/${id}`).then(
+      ({ data }) => openLightbox(this.gallery, [data], 0),
+      () => {}
+    );
   }
 
   view() {
@@ -144,13 +150,19 @@ export default class ContestPanel extends Component<Attrs> {
               <Button
                 className="Button"
                 icon="fas fa-pen"
-                onclick={() => app.modal.show(() => import('./ContestEditorModal'), { discussion: this.attrs.discussion, contestId: c.id, gallery: this.gallery })}
+                onclick={() =>
+                  app.modal.show(() => import('./ContestEditorModal'), { discussion: this.attrs.discussion, contestId: c.id, gallery: this.gallery })
+                }
               >
                 {t('panel.edit')}
               </Button>
             ) : null}
             {c.canManage && c.scoring === 'votes' && c.phase !== 'upcoming' && c.phase !== 'submissions' ? (
-              <Button className="Button" icon="fas fa-shield-halved" onclick={() => app.modal.show(() => import('./IntegrityModal'), { gallery: this.gallery })}>
+              <Button
+                className="Button"
+                icon="fas fa-shield-halved"
+                onclick={() => app.modal.show(() => import('./IntegrityModal'), { gallery: this.gallery })}
+              >
                 {t('panel.review_votes')}
               </Button>
             ) : null}

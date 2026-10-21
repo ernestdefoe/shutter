@@ -163,7 +163,15 @@ export default class ContestEditorModal extends FormModal<Attrs> {
 
         <div className="Form-group">
           <label for="shutter-rules">{t('editor.rules')}</label>
-          <textarea id="shutter-rules" className="FormControl" rows={3} maxlength={5000} value={f.rules} oninput={set('rules')} placeholder={extractText(t('editor.rules_placeholder'))} />
+          <textarea
+            id="shutter-rules"
+            className="FormControl"
+            rows={3}
+            maxlength={5000}
+            value={f.rules}
+            oninput={set('rules')}
+            placeholder={extractText(t('editor.rules_placeholder'))}
+          />
         </div>
 
         <fieldset>
@@ -254,7 +262,22 @@ export default class ContestEditorModal extends FormModal<Attrs> {
   /** Only the contest's own settings: the form was seeded from the full contest. */
   payload() {
     const f = this.form;
-    const keys: (keyof Form)[] = ['rules', 'entriesPerMember', 'votesPerMember', 'winnersCount', 'scoring', 'judges', 'namedVotes', 'liveCounts', 'hideEntrants', 'moderateEntries', 'enterGroupIds', 'voteGroupIds', 'voterMinDays', 'voterMinPosts'];
+    const keys: (keyof Form)[] = [
+      'rules',
+      'entriesPerMember',
+      'votesPerMember',
+      'winnersCount',
+      'scoring',
+      'judges',
+      'namedVotes',
+      'liveCounts',
+      'hideEntrants',
+      'moderateEntries',
+      'enterGroupIds',
+      'voteGroupIds',
+      'voterMinDays',
+      'voterMinPosts',
+    ];
     return {
       ...Object.fromEntries(keys.map((k) => [k, f[k]])),
       opensAt: toIso(f.opensAt),
@@ -299,20 +322,26 @@ export default class ContestEditorModal extends FormModal<Attrs> {
     const d = this.attrs.discussion;
     if (!d) return;
     d.pushAttributes({ shutterContest: contestId ? { id: contestId, phase: 'submissions' } : null });
-    app.store.find('discussions', d.id()!).then(() => m.redraw(), () => m.redraw());
+    app.store.find('discussions', d.id()!).then(
+      () => m.redraw(),
+      () => m.redraw()
+    );
   }
 
   remove() {
     if (!confirm(extractText(t('editor.delete_confirm')))) return;
     this.loading = true;
 
-    api('DELETE', `/contests/${this.attrs.contestId}`).then(() => {
-      this.hide();
-      this.refreshDiscussion(null);
-    }, (error) => {
-      this.loading = false;
-      this.onerror(error);
-      m.redraw();
-    });
+    api('DELETE', `/contests/${this.attrs.contestId}`).then(
+      () => {
+        this.hide();
+        this.refreshDiscussion(null);
+      },
+      (error) => {
+        this.loading = false;
+        this.onerror(error);
+        m.redraw();
+      }
+    );
   }
 }

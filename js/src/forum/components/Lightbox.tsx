@@ -160,10 +160,20 @@ class Lightbox extends Component<Attrs> {
           />
           {many ? (
             <>
-              <button type="button" className="ShutterLightbox-nav ShutterLightbox-nav--prev" aria-label={extractText(t('lightbox.previous'))} onclick={() => this.go(-1)}>
+              <button
+                type="button"
+                className="ShutterLightbox-nav ShutterLightbox-nav--prev"
+                aria-label={extractText(t('lightbox.previous'))}
+                onclick={() => this.go(-1)}
+              >
                 <Icon name="fas fa-chevron-left" />
               </button>
-              <button type="button" className="ShutterLightbox-nav ShutterLightbox-nav--next" aria-label={extractText(t('lightbox.next'))} onclick={() => this.go(1)}>
+              <button
+                type="button"
+                className="ShutterLightbox-nav ShutterLightbox-nav--next"
+                aria-label={extractText(t('lightbox.next'))}
+                onclick={() => this.go(1)}
+              >
                 <Icon name="fas fa-chevron-right" />
               </button>
             </>
@@ -188,9 +198,19 @@ class Lightbox extends Component<Attrs> {
             onclick={() => (this.info = !this.info)}
           />
           {document.fullscreenEnabled ? (
-            <Button className="Button Button--icon Button--flat" icon="fas fa-expand" aria-label={extractText(t('lightbox.fullscreen'))} onclick={() => this.fullscreen()} />
+            <Button
+              className="Button Button--icon Button--flat"
+              icon="fas fa-expand"
+              aria-label={extractText(t('lightbox.fullscreen'))}
+              onclick={() => this.fullscreen()}
+            />
           ) : null}
-          <Button className="Button Button--icon Button--flat" icon="fas fa-xmark" aria-label={extractText(t('lightbox.close'))} onclick={() => this.attrs.close()} />
+          <Button
+            className="Button Button--icon Button--flat"
+            icon="fas fa-xmark"
+            aria-label={extractText(t('lightbox.close'))}
+            onclick={() => this.attrs.close()}
+          />
         </div>
 
         {this.info ? this.panel(entry) : null}
@@ -210,7 +230,11 @@ class Lightbox extends Component<Attrs> {
           {entry.placement ? <span className={`Shutter-medal Shutter-medal--${Math.min(entry.placement, 4)}`}>{place(entry.placement)}</span> : null}
           {entry.title}
         </h3>
-        {entry.user ? <p className="ShutterLightbox-by">{t('panel.by', { name: entry.user.displayName })}</p> : c?.hideEntrants ? <p className="ShutterLightbox-by is-hidden">{t('lightbox.anonymous')}</p> : null}
+        {entry.user ? (
+          <p className="ShutterLightbox-by">{t('panel.by', { name: entry.user.displayName })}</p>
+        ) : c?.hideEntrants ? (
+          <p className="ShutterLightbox-by is-hidden">{t('lightbox.anonymous')}</p>
+        ) : null}
         {entry.caption ? <p className="ShutterLightbox-caption">{entry.caption}</p> : null}
         {camera ? (
           <p className="ShutterLightbox-camera">

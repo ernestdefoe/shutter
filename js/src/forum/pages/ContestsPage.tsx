@@ -37,12 +37,14 @@ export default class ContestsPage extends Page {
 
   load(more = false) {
     this.loading = true;
-    api<{ data: Card[]; nextOffset: number | null }>('GET', '/contests', undefined, { status: this.tab, offset: more ? this.next : 0 }).then(({ data, nextOffset }) => {
-      this.cards = more ? [...this.cards, ...data] : data;
-      this.next = nextOffset;
-      this.loading = false;
-      m.redraw();
-    });
+    api<{ data: Card[]; nextOffset: number | null }>('GET', '/contests', undefined, { status: this.tab, offset: more ? this.next : 0 }).then(
+      ({ data, nextOffset }) => {
+        this.cards = more ? [...this.cards, ...data] : data;
+        this.next = nextOffset;
+        this.loading = false;
+        m.redraw();
+      }
+    );
   }
 
   view() {
@@ -70,9 +72,7 @@ export default class ContestsPage extends Page {
         {this.loading && !this.cards.length ? <LoadingIndicator display="block" /> : null}
         {!this.loading && !this.cards.length ? <p className="Shutter-empty">{t(`contests.empty_${this.tab}`)}</p> : null}
 
-        <ul className="ShutterContests">
-          {this.cards.map((card) => this.card(card))}
-        </ul>
+        <ul className="ShutterContests">{this.cards.map((card) => this.card(card))}</ul>
         {this.next !== null ? (
           <div className="Shutter-more">
             <Button className="Button" loading={this.loading} onclick={() => this.load(true)}>

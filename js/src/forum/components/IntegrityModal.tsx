@@ -60,7 +60,12 @@ export default class IntegrityModal extends Modal<Attrs> {
 
   content() {
     const r = this.review;
-    if (!r) return <div className="Modal-body"><LoadingIndicator display="block" /></div>;
+    if (!r)
+      return (
+        <div className="Modal-body">
+          <LoadingIndicator display="block" />
+        </div>
+      );
 
     return (
       <div className="Modal-body">
@@ -85,7 +90,11 @@ export default class IntegrityModal extends Modal<Attrs> {
                   {entry.flagged.map((f) => (
                     <tr className={f.voided ? 'is-voided' : ''}>
                       <td>{f.voter.username}</td>
-                      <td>{f.reasons.map((reason) => <span className="ShutterIntegrity-reason">{t(`integrity.reason.${reason}`)}</span>)}</td>
+                      <td>
+                        {f.reasons.map((reason) => (
+                          <span className="ShutterIntegrity-reason">{t(`integrity.reason.${reason}`)}</span>
+                        ))}
+                      </td>
                       <td>
                         <Button className="Button Button--text" disabled={this.busy} onclick={() => this.set([f.voteId], !f.voided)}>
                           {t(f.voided ? 'integrity.restore' : 'integrity.void')}

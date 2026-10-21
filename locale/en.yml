@@ -153,6 +153,7 @@ ernestdefoe-shutter:
       vote: Vote for this photo
       unvote: Take back your vote
       out_of_votes: You have used all your votes
+      my_score: "{score} / 10"
       status:
         pending: Awaiting approval
         disqualified: Disqualified

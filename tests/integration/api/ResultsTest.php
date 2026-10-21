@@ -150,9 +150,10 @@ class ResultsTest extends ShutterTestCase
     public function staff_see_votes_from_the_entrants_own_network_and_can_void_them(): void
     {
         $contest = $this->contest();
-        $alice = $this->entryId($this->send($this->fromIp('203.0.113.7',
+        $alice = $this->entryId($this->send($this->fromIp(
+            '203.0.113.7',
             $this->request('POST', "/api/shutter/contests/$contest/entries", ['authenticatedAs' => 4])
-                
+
                 ->withParsedBody(['title' => 'x'])
                 ->withUploadedFiles(['photo' => \ErnestDefoe\Shutter\Tests\Photos::upload(\ErnestDefoe\Shutter\Tests\Photos::jpeg(300, 300, random_int(1, 2 ** 31 - 1)))])
         )));
