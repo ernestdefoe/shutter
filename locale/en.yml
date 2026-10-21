@@ -16,6 +16,7 @@ ernestdefoe-shutter:
       entries: Photos entered in contests
 
   api:
+    atrium_caption: "{place} in the photo contest \"{contest}\"."
     upload:
       missing: Choose a photo to enter.
       incomplete: The photo did not arrive in full. Please try again.
@@ -116,6 +117,7 @@ ernestdefoe-shutter:
       votes: "{count, plural, one {# vote} other {# votes}}"
       score: "{score} / 10 from {count, plural, one {# judge} other {# judges}}"
       slideshow: Slideshow
+      in_gallery: See it in the gallery
       more: Load more
       empty: No photos yet.
       empty_mine: You have not entered a photo.
@@ -225,6 +227,9 @@ ernestdefoe-shutter:
       live_counts: Show vote counts while voting is open
       hide_entrants: Hide photographers' names until voting closes
       winners_count: Places on the podium
+      atrium_album: Publish the winners to an Atrium album
+      atrium_none: Don't publish
+      atrium_help: When the contest is decided, the podium photos are added to this album, credited to their photographers, and can be seen by whoever can see the album.
       save: Save contest
       use: Use these settings
       remove_draft: Not a contest

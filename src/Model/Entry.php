@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property Carbon|null $approved_at
  * @property Carbon|null $disqualified_at
  * @property int|null $placement
+ * @property int|null $atrium_image_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Contest $contest

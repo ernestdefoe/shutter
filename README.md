@@ -31,6 +31,7 @@ Run themed photo contests on your forum. Staff set the theme and the schedule, m
   - entrants voting for each other.
 
   Staff void or restore votes with one click. Addresses are never stored, only a keyed hash of the network, and staff never see one.
+- **Atrium galleries (optional).** With [Atrium](https://ernestdefoe.online) installed, a contest can name an album, and the podium photos are added to it when the contest is decided, credited to their photographers.
 - **A contests page** (`/contests`) with running and decided contests.
 - Translatable throughout, works in light and dark mode and on phones. It adds about 3 KB (gzipped) to the JavaScript every page loads; the gallery, viewer and editors load only where they are used.
 

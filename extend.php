@@ -13,6 +13,7 @@ use ErnestDefoe\Shutter\Access;
 use ErnestDefoe\Shutter\Api;
 use ErnestDefoe\Shutter\Console\TickCommand;
 use ErnestDefoe\Shutter\ContestSaver;
+use ErnestDefoe\Shutter\Integration\Atrium\Publisher;
 use ErnestDefoe\Shutter\Integration\Badges\BadgesProvider;
 use ErnestDefoe\Shutter\Listener\ForgetFiles;
 use ErnestDefoe\Shutter\Media\Store;
@@ -73,7 +74,8 @@ return [
         ->post('/shutter/entries/{id:[0-9]+}/vote', 'shutter.vote', Api\VoteController::class)
         ->delete('/shutter/entries/{id:[0-9]+}/vote', 'shutter.unvote', Api\VoteController::class)
         ->put('/shutter/entries/{id:[0-9]+}/score', 'shutter.score', Api\ScoreController::class)
-        ->get('/shutter/entries/{id:[0-9]+}/voters', 'shutter.voters', Api\VotersController::class),
+        ->get('/shutter/entries/{id:[0-9]+}/voters', 'shutter.voters', Api\VotersController::class)
+        ->get('/shutter/atrium-albums', 'shutter.atrium.albums', Api\AtriumAlbumsController::class),
 
     (new Extend\ThrottleApi())
         ->set('shutterUploads', Api\UploadThrottle::class),
@@ -88,9 +90,9 @@ return [
                 // 🚨 A Flarum rule, not json-api-server's validate(): Flarum
                 // never calls the latter, and a bad contest then surfaced only
                 // after the discussion had been saved.
-                ->rule(fn () => function (string $attribute, mixed $value, Closure $fail) {
+                ->rule(fn (Context $context) => function (string $attribute, mixed $value, Closure $fail) use ($context) {
                     try {
-                        resolve(ContestSaver::class)->clean(is_array($value) ? $value : []);
+                        resolve(ContestSaver::class)->clean(is_array($value) ? $value : [], null, $context->getActor());
                     } catch (ValidationException $e) {
                         $fail((string) array_values($e->getAttributes())[0]);
                     }
@@ -99,7 +101,7 @@ return [
                 ->save(function (Discussion $discussion, mixed $value, Context $context) {
                     if (is_array($value)) {
                         $saver = resolve(ContestSaver::class);
-                        $saver->create($discussion, $context->getActor(), $saver->clean($value));
+                        $saver->create($discussion, $context->getActor(), $saver->clean($value, null, $context->getActor()));
                     }
                 }),
         ]),
@@ -109,6 +111,8 @@ return [
         ->fields(fn () => [
             Schema\Boolean::make('canManagePhotoContests')
                 ->get(fn ($forum, Context $context) => Access::canManage($context->getActor())),
+            Schema\Boolean::make('shutterAtrium')
+                ->get(fn ($forum, Context $context) => Access::canManage($context->getActor()) && resolve(Publisher::class)->available()),
             Schema\Boolean::make('shutterNav')
                 ->get(fn () => (bool) resolve(SettingsRepositoryInterface::class)->get('ernestdefoe-shutter.show_nav')
                     && (int) resolve(SettingsRepositoryInterface::class)->get(ContestSaver::COUNT) > 0),

@@ -256,6 +256,11 @@ class Lightbox extends Component<Attrs> {
             {t(entry.voted ? 'entry.unvote' : gallery.votesLeft() === 0 ? 'entry.out_of_votes' : 'entry.vote')}
           </Button>
         ) : null}
+        {entry.atriumUrl ? (
+          <a className="ShutterLightbox-gallery" href={entry.atriumUrl}>
+            <Icon name="fas fa-images" /> {t('panel.in_gallery')}
+          </a>
+        ) : null}
         {entry.votes !== undefined ? <p className="ShutterLightbox-tally">{t('panel.votes', { count: entry.votes })}</p> : null}
         {entry.score !== undefined && entry.score !== null ? (
           <p className="ShutterLightbox-tally">{t('panel.score', { score: entry.score.toFixed(1), count: entry.scores ?? 0 })}</p>

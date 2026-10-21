@@ -40,6 +40,7 @@ type Form = {
   voteGroupIds: number[];
   voterMinDays: number;
   voterMinPosts: number;
+  atriumAlbumId: number | null;
 };
 
 /** datetime-local wants local time without a zone; the API wants ISO with one. */
@@ -55,6 +56,8 @@ export default class ContestEditorModal extends FormModal<Attrs> {
   form!: Form;
   ready = false;
   phase: string | null = null;
+  /** Atrium albums the winners can be published to; null while loading or when Atrium is off. */
+  albums: { id: number; title: string }[] | null = null;
 
   className() {
     return 'ShutterEditorModal Modal--medium';
@@ -85,7 +88,15 @@ export default class ContestEditorModal extends FormModal<Attrs> {
       voteGroupIds: [],
       voterMinDays: 0,
       voterMinPosts: 0,
+      atriumAlbumId: null,
     };
+
+    if (app.forum.attribute('shutterAtrium')) {
+      api<{ data: { id: number; title: string }[] }>('GET', '/atrium-albums').then(({ data }) => {
+        this.albums = data;
+        m.redraw();
+      });
+    }
 
     if (this.attrs.contestId) {
       api<{ data: Contest }>('GET', `/contests/${this.attrs.contestId}`, undefined, { limit: 1 }).then(({ data }) => {
@@ -234,6 +245,22 @@ export default class ContestEditorModal extends FormModal<Attrs> {
           <Switch state={f.hideEntrants} onchange={(v: boolean) => (f.hideEntrants = v)}>
             {t('editor.hide_entrants')}
           </Switch>
+          {this.albums ? (
+            <label className="ShutterEditor-wide">
+              {t('editor.atrium_album')}
+              <select
+                className="FormControl"
+                value={f.atriumAlbumId ?? ''}
+                onchange={(e: Event) => (f.atriumAlbumId = Number((e.target as HTMLSelectElement).value) || null)}
+              >
+                <option value="">{extractText(t('editor.atrium_none'))}</option>
+                {this.albums.map((a) => (
+                  <option value={a.id}>{a.title}</option>
+                ))}
+              </select>
+              <span className="helpText">{t('editor.atrium_help')}</span>
+            </label>
+          ) : null}
           <label className="ShutterEditor-number">
             {t('editor.winners_count')}
             <input type="number" className="FormControl" min={1} max={10} value={f.winnersCount} oninput={num('winnersCount')} />
@@ -278,6 +305,9 @@ export default class ContestEditorModal extends FormModal<Attrs> {
       'voterMinDays',
       'voterMinPosts',
     ];
+    // Only sent where Atrium is on: elsewhere there is no album to name.
+    if (app.forum.attribute('shutterAtrium')) keys.push('atriumAlbumId');
+
     return {
       ...Object.fromEntries(keys.map((k) => [k, f[k]])),
       opensAt: toIso(f.opensAt),

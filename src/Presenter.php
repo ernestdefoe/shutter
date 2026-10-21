@@ -2,10 +2,12 @@
 
 namespace ErnestDefoe\Shutter;
 
+use ErnestDefoe\Shutter\Integration\Atrium\Publisher;
 use ErnestDefoe\Shutter\Media\Store;
 use ErnestDefoe\Shutter\Model\Contest;
 use ErnestDefoe\Shutter\Model\Entry;
 use Flarum\Group\Group;
+use Flarum\Http\UrlGenerator;
 use Flarum\User\User;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Support\Collection;
@@ -21,8 +23,13 @@ use Illuminate\Support\Collection;
  */
 class Presenter
 {
-    public function __construct(private Store $store, private Results $results, private ConnectionInterface $db)
-    {
+    public function __construct(
+        private Store $store,
+        private Results $results,
+        private ConnectionInterface $db,
+        private Publisher $publisher,
+        private UrlGenerator $url,
+    ) {
     }
 
     /** @return array<string, mixed> */
@@ -54,6 +61,7 @@ class Presenter
             'seesTallies' => Access::seesTallies($actor, $contest),
             'finalized' => $contest->finalized_at !== null,
             'canManage' => $manage,
+            'atriumAlbumId' => $manage ? $contest->atrium_album_id : null,
         ];
     }
 
@@ -88,6 +96,9 @@ class Presenter
             'mine' => $mine,
             'user' => $showUser ? $this->user($entry->user) : null,
             'placement' => $contest->finalized_at !== null ? $entry->placement : null,
+            'atriumUrl' => $entry->atrium_image_id && $this->publisher->available()
+                ? $this->url->to('forum')->route('atrium.image', ['id' => $entry->atrium_image_id])
+                : null,
         ];
 
         if ($mine || $manage) {

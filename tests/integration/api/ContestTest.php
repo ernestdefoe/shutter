@@ -196,4 +196,20 @@ class ContestTest extends ShutterTestCase
         $this->assertSame(0, $this->database()->table('shutter_entries')->count());
         $this->assertSame('', @$this->file($entry['large']));
     }
+
+    #[Test]
+    public function without_atrium_there_is_no_album_to_publish_to(): void
+    {
+        $contest = $this->contest();
+
+        $named = $this->send($this->request('PATCH', "/api/shutter/contests/$contest", ['authenticatedAs' => 3, 'json' => ['data' => ['atriumAlbumId' => 5]]]));
+        $this->assertSame(422, $named->getStatusCode());
+        $none = $this->send($this->request('PATCH', "/api/shutter/contests/$contest", ['authenticatedAs' => 3, 'json' => ['data' => ['atriumAlbumId' => null]]]));
+        $this->assertSame(200, $none->getStatusCode());
+
+        $this->assertSame([], $this->json($this->send($this->request('GET', '/api/shutter/atrium-albums', ['authenticatedAs' => 3])))['data']);
+        $this->assertSame(403, $this->send($this->request('GET', '/api/shutter/atrium-albums', ['authenticatedAs' => 4]))->getStatusCode());
+        $this->assertFalse($this->json($this->send($this->request('GET', '/api', ['authenticatedAs' => 3])))['data']['attributes']['shutterAtrium']);
+        $this->assertNull($this->json($this->submit($contest, 4))['data']['atriumUrl']);
+    }
 }

@@ -33,6 +33,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $voter_min_posts
  * @property Carbon|null $voting_notified_at
  * @property Carbon|null $finalized_at
+ * @property int|null $atrium_album_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Discussion|null $discussion

@@ -234,6 +234,11 @@ export default class ContestPanel extends Component<Attrs> {
                 <strong>{entry.title}</strong>
                 {entry.user ? <span className="Shutter-by">{t('panel.by', { name: entry.user.displayName })}</span> : null}
                 <span className="Shutter-tally">{this.tally(entry)}</span>
+                {entry.atriumUrl ? (
+                  <a className="Shutter-gallery" href={entry.atriumUrl}>
+                    {t('panel.in_gallery')}
+                  </a>
+                ) : null}
               </figcaption>
             </figure>
           ))}

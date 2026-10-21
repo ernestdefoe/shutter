@@ -24,6 +24,7 @@ export interface Entry {
   mine: boolean;
   user: Person | null;
   placement: number | null;
+  atriumUrl: string | null;
   status?: 'approved' | 'pending' | 'disqualified';
   votes?: number;
   score?: number | null;
@@ -65,6 +66,7 @@ export interface Contest {
   seesTallies: boolean;
   finalized: boolean;
   canManage: boolean;
+  atriumAlbumId: number | null;
   viewer: Viewer;
   entryCount: number;
   judges?: Person[];

@@ -3,6 +3,7 @@
 namespace ErnestDefoe\Shutter;
 
 use Carbon\Carbon;
+use ErnestDefoe\Shutter\Integration\Atrium\Publisher;
 use ErnestDefoe\Shutter\Model\Contest;
 use ErnestDefoe\Shutter\Model\Entry;
 use Flarum\Discussion\Discussion;
@@ -24,6 +25,7 @@ class ContestSaver
     public function __construct(
         private TranslatorInterface $translator,
         private SettingsRepositoryInterface $settings,
+        private Publisher $publisher,
     ) {
     }
 
@@ -34,7 +36,7 @@ class ContestSaver
      * @param array<string, mixed> $in
      * @return array<string, mixed>
      */
-    public function clean(array $in, ?Contest $existing = null): array
+    public function clean(array $in, ?Contest $existing = null, ?User $actor = null): array
     {
         $out = [];
         $has = fn (string $key) => $existing === null || array_key_exists($key, $in);
@@ -112,6 +114,18 @@ class ContestSaver
 
         if ($has('judges')) {
             $out['judge_ids'] = $this->judges($in['judges'] ?? []);
+        }
+
+        // Atrium (optional): the album the winners are published to.
+        if (array_key_exists('atriumAlbumId', $in)) {
+            $album = $in['atriumAlbumId'];
+            if ($album === null || $album === '' || $album === 0 || $album === '0') {
+                $out['atrium_album_id'] = null;
+            } elseif (! is_numeric($album) || ! $actor || ! $this->publisher->canChoose((int) $album, $actor)) {
+                $this->fail('atriumAlbumId', 'invalid');
+            } else {
+                $out['atrium_album_id'] = (int) $album;
+            }
         }
 
         $scoring = $out['scoring'] ?? $existing->scoring ?? 'votes';

@@ -11,5 +11,9 @@ parameters:
     paths:
         - extend.php
         - src
+    # Atrium is private and optional: the classes Shutter builds on are
+    # described for the analyser only.
+    scanFiles:
+        - tests/phpstan/optional-extensions.php
     databaseMigrationsPath:
         - migrations

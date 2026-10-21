@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+- Publish a contest's winners to an Atrium album (when Atrium is installed): choose the album in the contest settings, and the podium photos are added when the contest is decided, credited to their photographers, with a "See it in the gallery" link on each.
+
 ## 1.0.0
 
 First release.

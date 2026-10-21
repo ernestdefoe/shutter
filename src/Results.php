@@ -4,6 +4,7 @@ namespace ErnestDefoe\Shutter;
 
 use Carbon\Carbon;
 use ErnestDefoe\Shutter\Event\ContestFinalized;
+use ErnestDefoe\Shutter\Integration\Atrium\Publisher;
 use ErnestDefoe\Shutter\Model\Contest;
 use ErnestDefoe\Shutter\Model\Entry;
 use ErnestDefoe\Shutter\Notification\PlacedBlueprint;
@@ -29,6 +30,7 @@ class Results
         private NotificationSyncer $notifications,
         private Dispatcher $events,
         private LoggerInterface $log,
+        private Publisher $publisher,
     ) {
     }
 
@@ -211,6 +213,9 @@ class Results
         }
 
         $entrants = $first ? $entries->pluck('user_id')->filter()->unique()->map(fn ($id) => (int) $id)->values()->all() : [];
+        // Atrium (optional): the podium photos into the contest's album.
+        $this->publisher->publish($contest, Entry::query()->where('contest_id', $contest->id)->whereNotNull('placement')->inRunning()->orderBy('placement')->orderBy('id')->get());
+
         $this->events->dispatch(new ContestFinalized($contest, array_values(array_unique($newlyPlaced)), $entrants));
     }
 }

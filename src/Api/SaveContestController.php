@@ -35,7 +35,7 @@ class SaveContestController implements RequestHandlerInterface
 
         if ($request->getMethod() === 'PATCH') {
             $contest = $this->manageableContest($this->routeId($request), $actor);
-            $contest = $this->saver->update($contest, $this->saver->clean($body, $contest), $this->results);
+            $contest = $this->saver->update($contest, $this->saver->clean($body, $contest, $actor), $this->results);
 
             return new JsonResponse(['data' => $this->presenter->contest($contest, $actor)]);
         }
@@ -45,7 +45,7 @@ class SaveContestController implements RequestHandlerInterface
         }
 
         $discussion = Discussion::query()->whereVisibleTo($actor)->findOrFail((int) ($body['discussionId'] ?? 0));
-        $contest = $this->saver->create($discussion, $actor, $this->saver->clean($body));
+        $contest = $this->saver->create($discussion, $actor, $this->saver->clean($body, null, $actor));
 
         return new JsonResponse(['data' => $this->presenter->contest($contest, $actor)], 201);
     }
