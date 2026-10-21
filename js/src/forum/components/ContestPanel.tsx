@@ -2,6 +2,7 @@ import app from 'flarum/forum/app';
 import Component from 'flarum/common/Component';
 import Button from 'flarum/common/components/Button';
 import Icon from 'flarum/common/components/Icon';
+import Select from 'flarum/common/components/Select';
 import LoadingIndicator from 'flarum/common/components/LoadingIndicator';
 import Tooltip from 'flarum/common/components/Tooltip';
 import extractText from 'flarum/common/utils/extractText';
@@ -11,6 +12,7 @@ import { api, place, relative, t, when } from '../../common/api';
 import type { Entry, Sort } from '../../common/api';
 import ContestState from './state';
 import Tile from './Tile';
+import { take } from '../deepLink';
 
 interface Attrs {
   contestId: number;
@@ -63,7 +65,7 @@ export default class ContestPanel extends Component<Attrs> {
 
   /** ?photo=12 opens that photo: links from alerts, emails and replies. */
   deepLink() {
-    const id = Number(new URLSearchParams(location.search).get('photo'));
+    const id = take();
     if (!id) return;
 
     const list = this.gallery.entries;
@@ -213,7 +215,7 @@ export default class ContestPanel extends Component<Attrs> {
             <figure className={`Shutter-place Shutter-place--${Math.min(entry.placement ?? 4, 4)}`} key={entry.id}>
               <button type="button" className="Shutter-placeImage" onclick={() => openLightbox(this.gallery, list, i)} aria-label={entry.title}>
                 <img src={entry.thumb} alt="" loading="lazy" style={entry.blur ? { backgroundImage: `url("${entry.blur}")` } : undefined} />
-                <span className="Shutter-medal">{place(entry.placement!)}</span>
+                <span className={`Shutter-medal Shutter-medal--${Math.min(entry.placement!, 4)}`}>{place(entry.placement!)}</span>
               </button>
               <figcaption>
                 <strong>{entry.title}</strong>
@@ -260,16 +262,13 @@ export default class ContestPanel extends Component<Attrs> {
           <span />
         )}
         <div className="Shutter-toolbarEnd">
-          <select
-            className="FormControl Shutter-sort"
+          <Select
+            className="Shutter-sort"
             aria-label={extractText(t('panel.sort.label'))}
             value={gallery.sort ?? ''}
-            onchange={(e: Event) => gallery.setSort((e.target as HTMLSelectElement).value as Sort)}
-          >
-            {sorts.map((sort) => (
-              <option value={sort}>{extractText(t(`panel.sort.${sort}`))}</option>
-            ))}
-          </select>
+            options={Object.fromEntries(sorts.map((sort) => [sort, extractText(t(`panel.sort.${sort}`))]))}
+            onchange={(value: Sort) => gallery.setSort(value)}
+          />
           {gallery.entries.length > 1 ? (
             <Button className="Button" icon="fas fa-play" onclick={() => openLightbox(gallery, gallery.entries, 0, true)}>
               {t('panel.slideshow')}

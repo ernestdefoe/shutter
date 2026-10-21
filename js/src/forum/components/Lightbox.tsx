@@ -151,7 +151,6 @@ class Lightbox extends Component<Attrs> {
           }}
         >
           <img
-            key={entry.id}
             className="ShutterLightbox-image"
             src={entry.large}
             alt={entry.title}

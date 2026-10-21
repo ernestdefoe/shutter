@@ -12,6 +12,8 @@ import type Mithril from 'mithril';
 import { t } from '../common/api';
 import notifications from './notifications';
 import Mount from './components/Mount';
+import DiscussionPage from 'flarum/forum/components/DiscussionPage';
+import { remember } from './deepLink';
 
 /*
  * Everything here runs on every page for every visitor, so it is only the
@@ -67,7 +69,7 @@ app.initializers.add('ernestdefoe-shutter', () => {
     const contest = discussion && contestOf(discussion);
 
     if (contest && post.number() === 1 && !this.isEditing()) {
-      content.push(<Mount key="shutter" name="panel" load={loadPanel} attrs={{ contestId: contest.id, discussion }} />);
+      content.push(<Mount name="panel" load={loadPanel} attrs={{ contestId: contest.id, discussion }} />);
     }
   });
 
@@ -115,6 +117,8 @@ app.initializers.add('ernestdefoe-shutter', () => {
     const draft = this.composer.body.attrs.shutterContest;
     if (draft) data.shutterContest = draft;
   });
+
+  extend(DiscussionPage.prototype, 'oninit', remember);
 
   notifications();
 });

@@ -28,7 +28,7 @@ export default class Tile extends Component<Attrs> {
             style={entry.blur ? { backgroundImage: `url("${entry.blur}")` } : undefined}
           />
           {entry.placement ? <span className={`Shutter-medal Shutter-medal--${Math.min(entry.placement, 4)}`}>{place(entry.placement)}</span> : null}
-          {entry.status && entry.status !== 'approved' ? <span className="Shutter-status">{t(`entry.status.${entry.status}`)}</span> : null}
+          {entry.status && entry.status !== 'approved' ? <span className="Shutter-entryStatus">{t(`entry.status.${entry.status}`)}</span> : null}
         </button>
         <div className="Shutter-tileFoot">
           <span className="Shutter-tileTitle" title={entry.title}>

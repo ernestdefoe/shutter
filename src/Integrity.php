@@ -15,7 +15,7 @@ use Illuminate\Database\ConnectionInterface;
  *   home, or a household).
  * - shared_network: three or more voters for one entry from one network.
  * - new_account: the account was made after the contest began.
- * - no_posts: the voter has never posted.
+ * - no_posts: the voter has never posted (only shown beside another sign).
  * - mutual: two entrants who voted for each other's photos.
  *
  * Three queries for the whole contest, whatever its size.
@@ -77,11 +77,13 @@ class Integrity
             if ($began && $vote->joined_at && strtotime((string) $vote->joined_at) > $began->getTimestamp()) {
                 $reasons[] = 'new_account';
             }
-            if ((int) $vote->comment_count === 0) {
-                $reasons[] = 'no_posts';
-            }
             if ($owner && isset($backed[$owner][(int) $vote->user_id])) {
                 $reasons[] = 'mutual';
+            }
+            // Plenty of honest members never post, so on its own this is
+            // noise; beside another sign it is worth saying.
+            if ($reasons && (int) $vote->comment_count === 0) {
+                $reasons[] = 'no_posts';
             }
 
             $id = (int) $vote->entry_id;
