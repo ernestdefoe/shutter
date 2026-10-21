@@ -119,11 +119,11 @@ ernestdefoe-shutter:
       more: Load more
       empty: No photos yet.
       empty_mine: You have not entered a photo.
-      empty_pending: Nothing is waiting for approval.
+      empty_pending: Nothing is awaiting approval or disqualified.
       view:
         all: Gallery
         mine: My entries
-        pending: Awaiting approval
+        pending: Held back
       sort:
         label: Order
         top: Top

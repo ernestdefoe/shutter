@@ -34,6 +34,18 @@ Run themed photo contests on your forum. Staff set the theme and the schedule, m
 - **A contests page** (`/contests`) with running and decided contests.
 - Translatable throughout, works in light and dark mode and on phones. It adds about 3 KB (gzipped) to the JavaScript every page loads; the gallery, viewer and editors load only where they are used.
 
+## Screenshots
+
+| A photo, full size | The winners |
+| --- | --- |
+| ![The lightbox with the photo's details and the vote](.github/screenshots/lightbox.png) | ![The podium after voting closed](.github/screenshots/podium.png) |
+
+| Running a contest | Every contest | On a phone |
+| --- | --- | --- |
+| ![The contest settings](.github/screenshots/editor.png) | ![The contests page](.github/screenshots/contests.png) | <img src=".github/screenshots/phone.png" width="260" alt="The gallery on a phone"> |
+
+<sub>Photos in the screenshots are from [Unsplash](https://unsplash.com) via picsum.photos.</sub>
+
 ## Privacy and safety of uploads
 
 - The type of each upload is read from its bytes. The filename and the type the browser declares are ignored.

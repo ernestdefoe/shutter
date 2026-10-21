@@ -198,7 +198,7 @@
   .Form-group { margin-bottom: 16px; }
   .Checkbox { margin: 8px 0; }
 }
-.ShutterEditor-dates { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); @media @phone { grid-template-columns: 1fr; } label { display: flex; flex-direction: column; gap: 4px; } }
+.ShutterEditor-dates { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); label { display: flex; flex-direction: column; gap: 4px; min-width: 0; } input { width: 100%; min-width: 0; } }
 .ShutterEditor-number { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; input { width: 90px; } }
 .ShutterEditor-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; @media @phone { grid-template-columns: 1fr; } }
 .ShutterEditor-wide { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; }
