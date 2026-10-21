@@ -176,6 +176,11 @@ ernestdefoe-shutter:
       reinstate: Reinstate
       delete: Delete
       delete_confirm: Delete this photo from the contest? Its votes go with it.
+      edit: Edit title and caption
+      save: Save
+      cancel: Cancel
+      withdraw: Withdraw
+      withdraw_confirm: Withdraw this photo from the contest?
 
     submit:
       title: Enter a photo

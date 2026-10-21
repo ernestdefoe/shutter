@@ -34,6 +34,7 @@ class Lightbox extends Component<Attrs> {
   touchX: number | null = null;
   info = true;
   previousFocus: Element | null = null;
+  editing: { id: number; title: string; caption: string; saving: boolean } | null = null;
 
   oninit(vnode: Mithril.Vnode<Attrs, this>) {
     super.oninit(vnode);
@@ -71,6 +72,7 @@ class Lightbox extends Component<Attrs> {
     if (next >= list.length) next = 0;
     if (next < 0) next = list.length - 1;
     this.index = next;
+    this.editing = null;
     this.preload();
     m.redraw();
   }
@@ -96,6 +98,7 @@ class Lightbox extends Component<Attrs> {
   }
 
   keydown(e: KeyboardEvent) {
+    if ((e.target as HTMLElement).closest('input, textarea')) return;
     if (e.key === 'ArrowRight') this.go(1);
     else if (e.key === 'ArrowLeft') this.go(-1);
     else if (e.key === 'Escape') this.attrs.close();
@@ -226,7 +229,8 @@ class Lightbox extends Component<Attrs> {
 
     return (
       <aside className="ShutterLightbox-info">
-        <h3 className="ShutterLightbox-title">
+        {this.editing?.id === entry.id ? this.editor(entry) : null}
+        <h3 className="ShutterLightbox-title" hidden={this.editing?.id === entry.id}>
           {entry.placement ? <span className={`Shutter-medal Shutter-medal--${Math.min(entry.placement, 4)}`}>{place(entry.placement)}</span> : null}
           {entry.title}
         </h3>
@@ -235,7 +239,7 @@ class Lightbox extends Component<Attrs> {
         ) : c?.hideEntrants ? (
           <p className="ShutterLightbox-by is-hidden">{t('lightbox.anonymous')}</p>
         ) : null}
-        {entry.caption ? <p className="ShutterLightbox-caption">{entry.caption}</p> : null}
+        {entry.caption && this.editing?.id !== entry.id ? <p className="ShutterLightbox-caption">{entry.caption}</p> : null}
         {camera ? (
           <p className="ShutterLightbox-camera">
             <Icon name="fas fa-camera" /> {camera}
@@ -288,9 +292,95 @@ class Lightbox extends Component<Attrs> {
               {t('lightbox.discuss')}
             </Button>
           ) : null}
-          {c?.canManage ? this.staff(entry) : null}
+          {c?.canManage ? this.staff(entry) : this.own(entry)}
         </div>
       </aside>
+    );
+  }
+
+  /** The entrant's own photo, while entries are open (or it still awaits approval). */
+  own(entry: Entry) {
+    const c = this.attrs.gallery.contest;
+    if (!entry.mine || !c || !(c.phase === 'submissions' || (entry.status === 'pending' && c.phase !== 'closed'))) return null;
+
+    return [
+      this.editing?.id === entry.id ? null : (
+        <Button className="Button" icon="fas fa-pen" onclick={() => this.rename(entry)}>
+          {t('lightbox.edit')}
+        </Button>
+      ),
+      <Button
+        className="Button Button--danger"
+        icon="fas fa-trash"
+        onclick={() => {
+          if (confirm(extractText(t('lightbox.withdraw_confirm')))) this.attrs.gallery.remove(entry).then(() => this.attrs.close());
+        }}
+      >
+        {t('lightbox.withdraw')}
+      </Button>,
+    ];
+  }
+
+  rename(entry: Entry) {
+    this.editing = { id: entry.id, title: entry.title, caption: entry.caption ?? '', saving: false };
+  }
+
+  save(entry: Entry) {
+    const e = this.editing!;
+    if (!e.title.trim()) return;
+    e.saving = true;
+
+    api<{ data: Entry }>('PATCH', `/entries/${entry.id}`, { title: e.title.trim(), caption: e.caption.trim() }).then(
+      ({ data }) => {
+        entry.title = data.title;
+        entry.caption = data.caption;
+        this.editing = null;
+        m.redraw();
+      },
+      () => {
+        e.saving = false;
+        m.redraw();
+      }
+    );
+  }
+
+  /** The title and caption as fields, for the entrant renaming their photo. */
+  editor(entry: Entry) {
+    const e = this.editing!;
+
+    return (
+      <form
+        className="ShutterLightbox-edit"
+        onsubmit={(ev: Event) => {
+          ev.preventDefault();
+          this.save(entry);
+        }}
+      >
+        <input
+          className="FormControl"
+          maxlength={100}
+          required
+          aria-label={extractText(t('submit.photo_title'))}
+          value={e.title}
+          oninput={(ev: InputEvent) => (e.title = (ev.target as HTMLInputElement).value)}
+        />
+        <textarea
+          className="FormControl"
+          maxlength={500}
+          rows={3}
+          aria-label={extractText(t('submit.caption'))}
+          value={e.caption}
+          oninput={(ev: InputEvent) => (e.caption = (ev.target as HTMLTextAreaElement).value)}
+        />
+        <div className="ShutterLightbox-editButtons">
+          <Button type="submit" className="Button Button--primary" loading={e.saving}>
+            {t('lightbox.save')}
+          </Button>
+          <Button className="Button" onclick={() => (this.editing = null)}>
+            {t('lightbox.cancel')}
+          </Button>
+        </div>
+      </form>
     );
   }
 
