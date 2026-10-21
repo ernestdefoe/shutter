@@ -1,0 +1,102 @@
+<?php
+
+namespace ErnestDefoe\Shutter\Api;
+
+use Carbon\Carbon;
+use ErnestDefoe\Shutter\Access;
+use ErnestDefoe\Shutter\Files;
+use ErnestDefoe\Shutter\Model\Contest;
+use ErnestDefoe\Shutter\Model\Entry;
+use ErnestDefoe\Shutter\Presenter;
+use ErnestDefoe\Shutter\Results;
+use Flarum\Http\RequestUtil;
+use Flarum\User\Exception\PermissionDeniedException;
+use Flarum\User\User;
+use Laminas\Diactoros\Response\EmptyResponse;
+use Laminas\Diactoros\Response\JsonResponse;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+/**
+ * PATCH and DELETE /api/shutter/entries/{id}.
+ *
+ * The entrant may retitle or withdraw their photo while submissions are
+ * open — not once voting starts, when a withdrawal would throw away other
+ * people's votes. Staff may edit, approve, disqualify, reinstate or delete
+ * at any time; in a decided contest the placings follow.
+ */
+class EntryController implements RequestHandlerInterface
+{
+    use Concerns;
+
+    public function __construct(private Presenter $presenter, private Results $results, private Files $files)
+    {
+    }
+
+    public function handle(ServerRequestInterface $request): ResponseInterface
+    {
+        $actor = RequestUtil::getActor($request);
+        $entry = $this->visibleEntry($this->routeId($request), $actor);
+        $contest = $entry->contest;
+        $manage = Access::canManage($actor);
+
+        if (! $manage && ! $this->ownerMayChange($entry, $contest, $actor)) {
+            throw new PermissionDeniedException();
+        }
+
+        if ($request->getMethod() === 'DELETE') {
+            $entry->delete();
+            $this->files->release([$entry]);
+            $this->results->rerank($contest);
+
+            return new EmptyResponse(204);
+        }
+
+        $body = $this->body($request);
+
+        if (array_key_exists('title', $body)) {
+            $title = trim((string) $body['title']);
+            if ($title === '' || mb_strlen($title) > 100) {
+                $this->refuse('title', 'entry.title', ['{max}' => 100]);
+            }
+            $entry->title = $title;
+        }
+
+        if (array_key_exists('caption', $body)) {
+            $caption = trim((string) $body['caption']);
+            if (mb_strlen($caption) > 500) {
+                $this->refuse('caption', 'entry.caption', ['{max}' => 500]);
+            }
+            $entry->caption = $caption === '' ? null : $caption;
+        }
+
+        $standing = false;
+
+        if ($manage && array_key_exists('approved', $body)) {
+            $entry->approved_at = $body['approved'] ? ($entry->approved_at ?? Carbon::now()) : null;
+            $standing = true;
+        }
+
+        if ($manage && array_key_exists('disqualified', $body)) {
+            $entry->disqualified_at = $body['disqualified'] ? ($entry->disqualified_at ?? Carbon::now()) : null;
+            $standing = true;
+        }
+
+        $entry->save();
+
+        if ($standing) {
+            $this->results->rerank($contest);
+            $entry->refresh();
+        }
+
+        return new JsonResponse(['data' => $this->presenter->entries(collect([$entry->load('user')]), $contest, $actor)[0]]);
+    }
+
+    private function ownerMayChange(Entry $entry, Contest $contest, User $actor): bool
+    {
+        return $entry->user_id !== null
+            && $entry->user_id === $actor->id
+            && ($contest->phase() === Contest::SUBMISSIONS || ($entry->approved_at === null && $contest->phase() !== Contest::CLOSED));
+    }
+}
