@@ -51,6 +51,7 @@ class Presenter
             'enterGroups' => $this->groups($contest->enter_group_ids),
             'voteGroups' => $this->groups($contest->vote_group_ids),
             'resultsPublic' => $contest->resultsPublic(),
+            'seesTallies' => Access::seesTallies($actor, $contest),
             'finalized' => $contest->finalized_at !== null,
             'canManage' => $manage,
         ];
@@ -68,10 +69,11 @@ class Presenter
         $manage = Access::canManage($actor);
         $urls = $this->store->urls($entry->hash, $entry->ext);
         $showUser = $mine || $manage || ! $contest->entrantsHidden();
-        $showTally = $manage || $contest->resultsPublic();
+        $showTally = Access::seesTallies($actor, $contest);
 
         $data = [
             'id' => $entry->id,
+            'contestId' => $entry->contest_id,
             'title' => $entry->title,
             'caption' => $entry->caption,
             'width' => $entry->width,
@@ -80,7 +82,9 @@ class Presenter
             'large' => $urls['large'],
             'blur' => $entry->blur,
             'camera' => $entry->camera,
-            'createdAt' => $entry->created_at?->toIso8601String(),
+            // Hidden with the name: a submission time can be matched to the
+            // entrant's other activity.
+            'createdAt' => $showUser ? $entry->created_at?->toIso8601String() : null,
             'mine' => $mine,
             'user' => $showUser ? $this->user($entry->user) : null,
             'placement' => $contest->finalized_at !== null ? $entry->placement : null,
@@ -145,7 +149,7 @@ class Presenter
     public function entries(Collection $entries, Contest $contest, User $actor): array
     {
         $ids = $entries->pluck('id')->map(fn ($id) => (int) $id)->all();
-        $tallies = $ids && (Access::canManage($actor) || $contest->resultsPublic()) ? $this->results->tallies($contest, $ids) : [];
+        $tallies = $ids && Access::seesTallies($actor, $contest) ? $this->results->tallies($contest, $ids) : [];
         $myVotes = [];
         $myScores = [];
 

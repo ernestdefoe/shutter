@@ -8,10 +8,13 @@ use ErnestDefoe\Shutter\Model\Contest;
 use ErnestDefoe\Shutter\Model\Entry;
 use ErnestDefoe\Shutter\Notification\PlacedBlueprint;
 use ErnestDefoe\Shutter\Notification\ResultsBlueprint;
+use Flarum\Discussion\Discussion;
 use Flarum\Notification\NotificationSyncer;
 use Flarum\User\User;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Database\ConnectionInterface;
+use Psr\Log\LoggerInterface;
+use Throwable;
 
 /**
  * Tallies, placings and the end of a contest.
@@ -25,6 +28,7 @@ class Results
         private ConnectionInterface $db,
         private NotificationSyncer $notifications,
         private Dispatcher $events,
+        private LoggerInterface $log,
     ) {
     }
 
@@ -123,7 +127,17 @@ class Results
         }
 
         $contest->finalized_at = $now;
-        $this->place($contest, true);
+
+        try {
+            $this->place($contest, true);
+        } catch (Throwable $e) {
+            // Released, so the scheduler or the next visitor tries again. Alerts
+            // already sent are not sent twice: the notification syncer keeps one
+            // per member and photo.
+            Contest::query()->whereKey($contest->id)->update(['finalized_at' => null]);
+            $contest->finalized_at = null;
+            $this->log->error('Shutter could not decide contest '.$contest->id.': '.$e->getMessage(), ['exception' => $e]);
+        }
     }
 
     /**
@@ -177,7 +191,12 @@ class Results
             $users = $best ? User::query()->whereIn('id', array_keys($best))->get()->keyBy('id') : collect();
 
             foreach ($best as $userId => $entryId) {
-                if ($user = $users->get($userId)) {
+                // 🚨 The email names the discussion and is not filtered by
+                // Flarum the way the alert list is: only to a member who can
+                // still see it.
+                $user = $users->get($userId);
+
+                if ($user && Discussion::query()->whereVisibleTo($user)->whereKey($discussion->id)->exists()) {
                     $this->notifications->sync(new PlacedBlueprint($discussion, $placings[$entryId], $entryId), [$user]);
                 }
             }
@@ -191,6 +210,7 @@ class Results
             }
         }
 
-        $this->events->dispatch(new ContestFinalized($contest, array_values(array_unique($newlyPlaced))));
+        $entrants = $first ? $entries->pluck('user_id')->filter()->unique()->map(fn ($id) => (int) $id)->values()->all() : [];
+        $this->events->dispatch(new ContestFinalized($contest, array_values(array_unique($newlyPlaced)), $entrants));
     }
 }

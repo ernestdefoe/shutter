@@ -60,7 +60,7 @@ class Entries
      */
     private function sort(Contest $contest, User $actor, string $asked): string
     {
-        $top = $contest->resultsPublic() || Access::canManage($actor);
+        $top = Access::seesTallies($actor, $contest);
 
         return match (true) {
             $asked === 'top' && $top, $asked === 'newest', $asked === 'shuffle' => $asked,

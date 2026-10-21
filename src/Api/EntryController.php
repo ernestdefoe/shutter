@@ -12,6 +12,7 @@ use ErnestDefoe\Shutter\Results;
 use Flarum\Http\RequestUtil;
 use Flarum\User\Exception\PermissionDeniedException;
 use Flarum\User\User;
+use Illuminate\Database\ConnectionInterface;
 use Laminas\Diactoros\Response\EmptyResponse;
 use Laminas\Diactoros\Response\JsonResponse;
 use Psr\Http\Message\ResponseInterface;
@@ -30,7 +31,7 @@ class EntryController implements RequestHandlerInterface
 {
     use Concerns;
 
-    public function __construct(private Presenter $presenter, private Results $results, private Files $files)
+    public function __construct(private Presenter $presenter, private Results $results, private Files $files, private ConnectionInterface $db)
     {
     }
 
@@ -51,6 +52,10 @@ class EntryController implements RequestHandlerInterface
         }
 
         if ($request->getMethod() === 'DELETE') {
+            // Children first: SQLite without foreign keys would keep them,
+            // and a kept vote would hold its voter's slot.
+            $this->db->table('shutter_votes')->where('entry_id', $entry->id)->delete();
+            $this->db->table('shutter_scores')->where('entry_id', $entry->id)->delete();
             $entry->delete();
             $this->files->release([$entry]);
             $this->results->rerank($contest);
@@ -88,6 +93,12 @@ class EntryController implements RequestHandlerInterface
             $standing = true;
         }
 
+        // In a moderated contest an approved photo whose words change goes back
+        // to the moderators, or approval would only ever cover the first draft.
+        if (! $manage && $contest->moderate_entries && $entry->isDirty(['title', 'caption'])) {
+            $entry->approved_at = null;
+        }
+
         $entry->save();
 
         if ($standing) {
@@ -100,8 +111,11 @@ class EntryController implements RequestHandlerInterface
 
     private function ownerMayChange(Entry $entry, Contest $contest, User $actor): bool
     {
+        // Never a disqualified photo: withdrawing it and entering it again
+        // would undo the moderators' decision.
         return $entry->user_id !== null
             && $entry->user_id === $actor->id
+            && $entry->disqualified_at === null
             && ($contest->phase() === Contest::SUBMISSIONS || ($entry->approved_at === null && $contest->phase() !== Contest::CLOSED));
     }
 }

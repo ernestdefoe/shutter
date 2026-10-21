@@ -19,6 +19,20 @@ class Access
         return $actor->hasPermission('shutter.manage');
     }
 
+    /**
+     * Whether the actor may see tallies (and the order they make) now: when
+     * results are public, or as staff — except a staff member who is judging
+     * an open judged contest, who must not see the running average.
+     */
+    public static function seesTallies(User $actor, Contest $contest): bool
+    {
+        if ($contest->resultsPublic()) {
+            return true;
+        }
+
+        return self::canManage($actor) && ! ($contest->judgeScored() && $contest->isJudge($actor));
+    }
+
     public static function enterBlock(User $actor, Contest $contest): ?string
     {
         return match (true) {

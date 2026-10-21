@@ -29,7 +29,17 @@ class Camera
             return null;
         }
 
-        $raw = @exif_read_data('data://image/jpeg;base64,'.base64_encode($bytes), 'EXIF,IFD0', true);
+        // A memory stream, not a data: URL, which allow_url_fopen=0 refuses.
+        $stream = fopen('php://memory', 'r+b');
+
+        if ($stream === false) {
+            return null;
+        }
+
+        fwrite($stream, $bytes);
+        rewind($stream);
+        $raw = @exif_read_data($stream, 'EXIF,IFD0', true);
+        fclose($stream);
 
         if (! is_array($raw)) {
             return null;

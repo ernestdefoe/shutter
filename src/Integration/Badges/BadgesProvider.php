@@ -36,14 +36,25 @@ class BadgesProvider extends AbstractServiceProvider
     public function boot(Dispatcher $events): void
     {
         $events->listen(ContestFinalized::class, function (ContestFinalized $event): void {
-            if ($event->placed) {
-                foreach (User::query()->whereIn('id', $event->placed)->get() as $user) {
-                    $this->evaluate($user, ContestFinalized::class);
+            foreach (User::query()->whereIn('id', $event->placed ?: [0])->get() as $user) {
+                $this->evaluate($user, ContestFinalized::class);
+            }
+
+            // 🚨 In a contest that hides who entered, the "photos entered"
+            // badge waits for the result: awarded at the moment of entry, its
+            // timestamp on a profile would name the photographer.
+            if ($event->contest->hide_entrants) {
+                foreach (User::query()->whereIn('id', $event->entrants ?: [0])->get() as $user) {
+                    $this->evaluate($user, EntrySubmitted::class);
                 }
             }
         });
 
-        $events->listen(EntrySubmitted::class, fn (EntrySubmitted $event) => $this->evaluate($event->actor, EntrySubmitted::class));
+        $events->listen(EntrySubmitted::class, function (EntrySubmitted $event): void {
+            if (! $event->entry->contest->hide_entrants) {
+                $this->evaluate($event->actor, EntrySubmitted::class);
+            }
+        });
     }
 
     private function evaluate(User $user, string $eventClass): void

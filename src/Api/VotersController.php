@@ -3,6 +3,7 @@
 namespace ErnestDefoe\Shutter\Api;
 
 use ErnestDefoe\Shutter\Access;
+use ErnestDefoe\Shutter\Model\Contest;
 use ErnestDefoe\Shutter\Presenter;
 use Flarum\Http\RequestUtil;
 use Flarum\User\Exception\PermissionDeniedException;
@@ -15,7 +16,8 @@ use Psr\Http\Server\RequestHandlerInterface;
 /**
  * GET /api/shutter/entries/{id}/voters — who voted for an entry.
  *
- * Only in a contest with named votes, and only once results are public:
+ * Only in a contest with named votes, and only once voting has closed (not
+ * merely when live counts are on):
  * names appearing during the vote would be a bandwagon. Staff always.
  * Fetched when a photo is opened, never per tile.
  */
@@ -33,7 +35,7 @@ class VotersController implements RequestHandlerInterface
         $entry = $this->visibleEntry($this->routeId($request), $actor);
         $contest = $entry->contest;
 
-        if (! Access::canManage($actor) && ! ($contest->named_votes && $contest->resultsPublic() && ! $contest->judgeScored())) {
+        if (! Access::canManage($actor) && ! ($contest->named_votes && $contest->phase() === Contest::CLOSED && ! $contest->judgeScored())) {
             throw new PermissionDeniedException();
         }
 

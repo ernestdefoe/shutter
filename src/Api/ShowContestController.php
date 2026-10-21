@@ -3,6 +3,7 @@
 namespace ErnestDefoe\Shutter\Api;
 
 use ErnestDefoe\Shutter\Access;
+use ErnestDefoe\Shutter\Ballot;
 use ErnestDefoe\Shutter\Entries;
 use ErnestDefoe\Shutter\Model\Contest;
 use ErnestDefoe\Shutter\Presenter;
@@ -45,7 +46,7 @@ class ShowContestController implements RequestHandlerInterface
 
         $voteBlock = Access::voteBlock($actor, $contest);
         $mine = $actor->isGuest() ? 0 : $this->db->table('shutter_entries')->where('contest_id', $contest->id)->where('user_id', $actor->id)->count();
-        $myVotes = $actor->isGuest() || $contest->judgeScored() ? 0 : $this->db->table('shutter_votes')->where('contest_id', $contest->id)->where('user_id', $actor->id)->count();
+        $myVotes = $actor->isGuest() || $contest->judgeScored() ? 0 : Ballot::counted($contest->id, (int) $actor->id)->count();
 
         $data['viewer'] = [
             'enterBlock' => Access::enterBlock($actor, $contest),

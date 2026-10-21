@@ -75,8 +75,9 @@ export default class ContestPanel extends Component<Attrs> {
     const index = list.findIndex((e) => e.id === id);
     if (index >= 0) return openLightbox(this.gallery, list, index);
 
+    // Only a photo of this contest: a link must not open another's here.
     api<{ data: Entry }>('GET', `/entries/${id}`).then(
-      ({ data }) => openLightbox(this.gallery, [data], 0),
+      ({ data }) => data.contestId === this.gallery.id && openLightbox(this.gallery, [data], 0),
       () => {}
     );
   }
@@ -250,7 +251,7 @@ export default class ContestPanel extends Component<Attrs> {
   toolbar() {
     const gallery = this.gallery;
     const c = gallery.contest!;
-    const sorts: Sort[] = c.resultsPublic || c.canManage ? ['top', 'shuffle', 'newest'] : ['shuffle', 'newest'];
+    const sorts: Sort[] = c.seesTallies ? ['top', 'shuffle', 'newest'] : ['shuffle', 'newest'];
     const views: Array<'all' | 'mine' | 'pending'> = ['all'];
     if (c.viewer.entries > 0) views.push('mine');
     if (c.canManage) views.push('pending');

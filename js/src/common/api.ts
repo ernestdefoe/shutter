@@ -11,6 +11,7 @@ export interface Person {
 
 export interface Entry {
   id: number;
+  contestId: number;
   title: string;
   caption: string | null;
   width: number;
@@ -61,6 +62,7 @@ export interface Contest {
   enterGroups: { id: number; name: string }[];
   voteGroups: { id: number; name: string }[];
   resultsPublic: boolean;
+  seesTallies: boolean;
   finalized: boolean;
   canManage: boolean;
   viewer: Viewer;

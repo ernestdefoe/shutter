@@ -4,6 +4,7 @@ namespace ErnestDefoe\Shutter\Api;
 
 use Carbon\Carbon;
 use ErnestDefoe\Shutter\Access;
+use ErnestDefoe\Shutter\Ballot;
 use ErnestDefoe\Shutter\Media\Network;
 use ErnestDefoe\Shutter\Model\Vote;
 use ErnestDefoe\Shutter\Results;
@@ -63,7 +64,7 @@ class VoteController implements RequestHandlerInterface
 
         return new JsonResponse(['data' => [
             'voted' => (clone $mine)->where('entry_id', $entry->id)->exists(),
-            'votesUsed' => (clone $mine)->count(),
+            'votesUsed' => Ballot::counted($contest->id, $actor->id)->count(),
             'votes' => $tally,
         ]]);
     }
@@ -71,8 +72,9 @@ class VoteController implements RequestHandlerInterface
     /** @param array<int, mixed> $used */
     private function cast(int $contestId, int $entryId, int $userId, array $used, int $limit, ServerRequestInterface $request): void
     {
-        // Two tries: a parallel vote may take the slot this one picked.
-        for ($try = 0; $try < 2; $try++) {
+        // A few tries: a parallel vote may take the slot this one picked, and
+        // a reclaimed slot needs a second look.
+        for ($try = 0; $try < 3; $try++) {
             $used = array_map('intval', $used);
             $slot = null;
 
@@ -84,6 +86,13 @@ class VoteController implements RequestHandlerInterface
             }
 
             if ($slot === null) {
+                // A slot held by a vote for a since-disqualified photo is the
+                // voter's to spend again.
+                if (Ballot::reclaim($contestId, $userId)) {
+                    $used = Vote::query()->where('contest_id', $contestId)->where('user_id', $userId)->pluck('slot')->all();
+                    continue;
+                }
+
                 $this->refuse('vote', 'vote.limit', ['{count}' => $limit]);
             }
 

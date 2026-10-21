@@ -55,9 +55,13 @@ class Intake
     }
 
     /**
-     * @return array{hash: string, ext: string, width: int, height: int, size: int, blur: ?string, camera: ?array<string, string>, files: array{large: string, thumb: string}}
+     * The cheap checks, before anything is decoded: size, type from the
+     * bytes, pixels, animation. Returns what derive() needs and the hash, so
+     * a duplicate is refused before it costs a decode.
+     *
+     * @return array{bytes: string, type: int, hash: string}
      */
-    public function accept(mixed $file): array
+    public function inspect(mixed $file): array
     {
         if (! $file instanceof UploadedFileInterface) {
             $this->fail('missing');
@@ -89,34 +93,96 @@ class Intake
             $this->fail('type');
         }
 
-        if ($info[0] < 1 || $info[1] < 1 || $info[0] * $info[1] > self::MAX_PIXELS) {
+        if ($info[0] < 1 || $info[1] < 1 || $info[0] * $info[1] > $this->pixelBudget()) {
             $this->fail('pixels');
         }
 
+        // 🚨 An animated WebP or PNG reports one frame's size here and then
+        // decodes every frame (Imagick): a small file worth minutes of CPU.
+        if ($this->animated($bytes, $info[2])) {
+            $this->fail('animated');
+        }
+
+        return ['bytes' => $bytes, 'type' => $info[2], 'hash' => hash('sha256', $bytes)];
+    }
+
+    /**
+     * Decode once and shrink in place, large then thumbnail then blur, so no
+     * more than one full-size copy is ever held.
+     *
+     * @param array{bytes: string, type: int, hash: string} $upload
+     * @return array{hash: string, ext: string, width: int, height: int, size: int, blur: string, camera: ?array<string, string>, files: array{large: string, thumb: string}}
+     */
+    public function derive(array $upload): array
+    {
         try {
             // Turned the right way up from the EXIF orientation, which is then
             // gone with the rest of the metadata.
-            $image = $this->images->read($bytes, BinaryImageDecoder::class);
+            $image = $this->images->read($upload['bytes'], BinaryImageDecoder::class);
         } catch (Throwable) {
             $this->fail('damaged');
         }
 
         [$encoder, $ext] = $this->format();
 
-        $large = (clone $image)->scaleDown($this->maxEdge(), $this->maxEdge());
-        $thumb = (clone $image)->scaleDown(self::THUMB, self::THUMB);
-        $blur = (clone $image)->scaleDown(16, 16);
+        $image->scaleDown($this->maxEdge(), $this->maxEdge());
+        $width = $image->width();
+        $height = $image->height();
+        $large = $this->encode($image, $encoder, 85);
+        $thumb = $this->encode($image->scaleDown(self::THUMB, self::THUMB), $encoder, 80);
+        $blur = $this->encode($image->scaleDown(16, 16), $encoder, 40);
 
         return [
-            'hash' => hash('sha256', $bytes),
+            'hash' => $upload['hash'],
             'ext' => $ext,
-            'width' => $large->width(),
-            'height' => $large->height(),
-            'size' => strlen($largeBytes = $this->encode($large, $encoder, 85)),
-            'blur' => 'data:'.($ext === 'webp' ? 'image/webp' : 'image/jpeg').';base64,'.base64_encode($this->encode($blur, $encoder, 40)),
-            'camera' => Camera::read($bytes, $info[2]),
-            'files' => ['large' => $largeBytes, 'thumb' => $this->encode($thumb, $encoder, 80)],
+            'width' => $width,
+            'height' => $height,
+            'size' => strlen($large),
+            'blur' => 'data:'.($ext === 'webp' ? 'image/webp' : 'image/jpeg').';base64,'.base64_encode($blur),
+            'camera' => Camera::read($upload['bytes'], $upload['type']),
+            'files' => ['large' => $large, 'thumb' => $thumb],
         ];
+    }
+
+    /**
+     * The most pixels this PHP process can decode: 50 MP, or fewer when the
+     * memory limit would not hold a full-size copy (4 bytes a pixel) and the
+     * first resized one beside it.
+     */
+    private function pixelBudget(): int
+    {
+        $limit = $this->bytesOf((string) ini_get('memory_limit'));
+
+        if ($limit <= 0) {
+            return self::MAX_PIXELS;
+        }
+
+        $free = $limit - memory_get_usage(true) - 24 * 1024 * 1024;
+
+        return (int) max(0, min(self::MAX_PIXELS, $free / 5));
+    }
+
+    private function bytesOf(string $value): int
+    {
+        $number = (int) $value;
+
+        return match (strtolower(substr(trim($value), -1))) {
+            'g' => $number * 1024 ** 3,
+            'm' => $number * 1024 ** 2,
+            'k' => $number * 1024,
+            default => $number,
+        };
+    }
+
+    private function animated(string $bytes, int $type): bool
+    {
+        return match ($type) {
+            // VP8X header, animation flag.
+            IMAGETYPE_WEBP => substr($bytes, 12, 4) === 'VP8X' && (ord($bytes[20] ?? "\0") & 0x02) === 0x02,
+            // An APNG's animation control chunk comes before its image data.
+            IMAGETYPE_PNG => ($actl = strpos($bytes, 'acTL')) !== false && $actl < (int) strpos($bytes, 'IDAT'),
+            default => false,
+        };
     }
 
     /**

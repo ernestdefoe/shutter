@@ -21,7 +21,8 @@ ernestdefoe-shutter:
       incomplete: The photo did not arrive in full. Please try again.
       too_big: "That photo is larger than {size} MB."
       type: Only JPEG, PNG and WebP photographs can be entered.
-      pixels: That photo has too many pixels to process (50 megapixels at most).
+      pixels: That photo has too many pixels for this forum to process. Please send a smaller copy.
+      animated: Animated images cannot be entered.
       damaged: That file could not be read as a photo.
     block:
       closed: Entries are not open in this contest right now.

@@ -75,6 +75,9 @@ return [
         ->put('/shutter/entries/{id:[0-9]+}/score', 'shutter.score', Api\ScoreController::class)
         ->get('/shutter/entries/{id:[0-9]+}/voters', 'shutter.voters', Api\VotersController::class),
 
+    (new Extend\ThrottleApi())
+        ->set('shutterUploads', Api\UploadThrottle::class),
+
     (new Extend\ApiResource(DiscussionResource::class))
         ->fields(fn () => [
             Schema\Arr::make('shutterContest')

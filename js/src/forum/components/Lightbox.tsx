@@ -116,7 +116,7 @@ class Lightbox extends Component<Attrs> {
 
   loadVoters(entry: Entry) {
     const c = this.attrs.gallery.contest;
-    if (!c || this.voters[entry.id] || !(c.canManage || (c.namedVotes && c.resultsPublic && c.scoring === 'votes'))) return;
+    if (!c || this.voters[entry.id] || !(c.canManage || (c.namedVotes && c.phase === 'closed' && c.scoring === 'votes'))) return;
     this.voters[entry.id] = 'loading';
     api<{ data: Person[] }>('GET', `/entries/${entry.id}/voters`).then(
       ({ data }) => {

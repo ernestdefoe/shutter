@@ -74,11 +74,14 @@ class SubmitEntryController implements RequestHandlerInterface
             $this->refuse('photo', 'entry.limit', ['{count}' => $contest->entries_per_member]);
         }
 
-        $photo = $this->intake->accept(Arr::get($request->getUploadedFiles(), 'photo'));
+        $upload = $this->intake->inspect(Arr::get($request->getUploadedFiles(), 'photo'));
 
-        if (Entry::query()->where('contest_id', $contest->id)->where('hash', $photo['hash'])->exists()) {
+        // Refused before the decode, so sending the same file again costs nothing.
+        if (Entry::query()->where('contest_id', $contest->id)->where('hash', $upload['hash'])->exists()) {
             $this->refuse('photo', 'entry.duplicate');
         }
+
+        $photo = $this->intake->derive($upload);
 
         $entry = new Entry();
         $entry->forceFill([
