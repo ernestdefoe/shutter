@@ -67,6 +67,7 @@ return [
         ->post('/shutter/contests/{id:[0-9]+}/entries', 'shutter.entries.create', Api\SubmitEntryController::class)
         ->get('/shutter/contests/{id:[0-9]+}/integrity', 'shutter.integrity', Api\IntegrityController::class)
         ->post('/shutter/contests/{id:[0-9]+}/integrity', 'shutter.integrity.void', Api\IntegrityController::class)
+        ->get('/shutter/entries/{id:[0-9]+}', 'shutter.entries.show', Api\EntryController::class)
         ->patch('/shutter/entries/{id:[0-9]+}', 'shutter.entries.update', Api\EntryController::class)
         ->delete('/shutter/entries/{id:[0-9]+}', 'shutter.entries.delete', Api\EntryController::class)
         ->post('/shutter/entries/{id:[0-9]+}/vote', 'shutter.vote', Api\VoteController::class)

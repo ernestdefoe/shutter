@@ -19,7 +19,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
- * PATCH and DELETE /api/shutter/entries/{id}.
+ * GET, PATCH and DELETE /api/shutter/entries/{id}.
  *
  * The entrant may retitle or withdraw their photo while submissions are
  * open — not once voting starts, when a withdrawal would throw away other
@@ -40,6 +40,11 @@ class EntryController implements RequestHandlerInterface
         $entry = $this->visibleEntry($this->routeId($request), $actor);
         $contest = $entry->contest;
         $manage = Access::canManage($actor);
+
+        // GET: one photo, for a link straight to it (?photo= on the discussion).
+        if ($request->getMethod() === 'GET') {
+            return new JsonResponse(['data' => $this->presenter->entries(collect([$entry->load('user')]), $contest, $actor)[0]]);
+        }
 
         if (! $manage && ! $this->ownerMayChange($entry, $contest, $actor)) {
             throw new PermissionDeniedException();

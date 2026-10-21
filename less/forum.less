@@ -1,0 +1,228 @@
+// Shutter — photo contests. Theme colours only, so dark mode and any theme
+// carry over; gold, silver and bronze are the one fixed palette.
+
+@shutter-gold: #d4a017;
+@shutter-silver: #9aa3ad;
+@shutter-bronze: #b0703c;
+
+.Badge--photoContest { --badge-bg: var(--secondary-color); }
+.Badge--shutter-voting { --badge-bg: var(--primary-color); }
+.Badge--shutter-closed { --badge-bg: var(--muted-color); }
+
+.ShutterComposerButton.active { color: var(--primary-color); }
+
+.Shutter {
+  margin: 24px 0 8px;
+  padding: 16px;
+  border: 1px solid var(--control-bg);
+  border-radius: var(--border-radius);
+  background: var(--body-bg);
+  font-size: 14px;
+  line-height: 1.5;
+
+  @media @phone { margin: 16px -15px 0; padding: 12px; border-radius: 0; border-left: 0; border-right: 0; }
+
+  &--loading { min-height: 120px; }
+}
+
+.Shutter-head { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; align-items: flex-start; }
+.Shutter-status { display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: center; }
+.Shutter-phase {
+  display: inline-flex; gap: 6px; align-items: center;
+  padding: 3px 10px; border-radius: 999px;
+  font-weight: 600; font-size: 12px;
+  background: var(--control-bg); color: var(--control-color);
+  &--submissions { background: var(--control-success-bg); color: var(--control-success-color); }
+  &--voting { background: var(--primary-color); color: var(--body-bg); }
+}
+.Shutter-when, .Shutter-count { color: var(--muted-color); }
+.Shutter-you { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; @media @phone { align-items: stretch; width: 100%; } }
+.Shutter-youText { margin: 0; color: var(--muted-color); }
+.Shutter-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.Shutter-rules {
+  margin: 12px 0 0;
+  summary { cursor: pointer; font-weight: 600; color: var(--heading-color); }
+  p { margin: 6px 0 0; white-space: pre-line; }
+}
+.Shutter-judges { margin: 10px 0 0; color: var(--muted-color); }
+
+.Shutter-toolbar { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: center; margin: 16px 0 10px; }
+.Shutter-toolbarEnd { display: flex; gap: 6px; align-items: center; }
+.Shutter-sort { width: auto; }
+.Shutter-tabs { display: flex; flex-wrap: wrap; gap: 2px; .Button.active { color: var(--primary-color); font-weight: 600; } }
+
+.Shutter-grid {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  @media @phone { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+}
+.Shutter-gridWrap.is-loading { opacity: 0.6; transition: opacity 0.2s; }
+
+.Shutter-tile {
+  display: flex; flex-direction: column; height: 100%;
+  border-radius: var(--border-radius); overflow: hidden;
+  background: var(--control-bg);
+  &.is-pending, &.is-disqualified { opacity: 0.7; }
+}
+.Shutter-tileImage, .Shutter-placeImage {
+  position: relative; display: block; width: 100%; padding: 0; border: 0;
+  aspect-ratio: 1; cursor: zoom-in; background: var(--control-bg-shaded);
+  img {
+    display: block; width: 100%; height: 100%; object-fit: cover;
+    background-size: cover; background-position: center;
+  }
+  &:focus-visible { outline: 2px solid var(--primary-color); outline-offset: -2px; }
+}
+.Shutter-tileFoot { display: flex; align-items: center; gap: 6px; padding: 6px 8px; min-height: 36px; }
+.Shutter-tileTitle { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; font-size: 13px; }
+.Shutter-status {
+  position: absolute; left: 6px; bottom: 6px;
+  padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600;
+  background: var(--body-bg); color: var(--text-color);
+}
+
+.Shutter-vote, .Shutter-voteStatic {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 8px; border: 0; border-radius: 999px;
+  background: transparent; color: var(--muted-color); font-size: 13px; line-height: 1;
+}
+.Shutter-vote {
+  cursor: pointer; min-height: 30px;
+  &:hover:not([disabled]) { background: var(--control-bg-shaded); color: var(--text-color); }
+  &.is-voted { color: #e0245e; }
+  &[disabled] { cursor: default; opacity: 0.5; }
+}
+
+.Shutter-medal {
+  position: absolute; top: 6px; left: 6px;
+  padding: 2px 8px; border-radius: 999px;
+  font-size: 12px; font-weight: 700; color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  &--1 { background: @shutter-gold; }
+  &--2 { background: @shutter-silver; }
+  &--3 { background: @shutter-bronze; }
+}
+.ShutterLightbox-title .Shutter-medal { position: static; margin-right: 8px; vertical-align: middle; }
+
+.Shutter-podium { margin: 16px 0 0; }
+.Shutter-podiumTitle { margin: 0 0 10px; font-size: 15px; .icon { color: @shutter-gold; } }
+.Shutter-podiumRow {
+  display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  figure { margin: 0; }
+  figcaption { display: flex; flex-direction: column; padding: 6px 2px 0; strong { overflow-wrap: anywhere; } }
+}
+.Shutter-place--1 .Shutter-placeImage { box-shadow: 0 0 0 3px @shutter-gold; border-radius: var(--border-radius); overflow: hidden; }
+.Shutter-place--2 .Shutter-placeImage { box-shadow: 0 0 0 3px @shutter-silver; border-radius: var(--border-radius); overflow: hidden; }
+.Shutter-place--3 .Shutter-placeImage { box-shadow: 0 0 0 3px @shutter-bronze; border-radius: var(--border-radius); overflow: hidden; }
+.Shutter-by, .Shutter-tally { color: var(--muted-color); font-size: 13px; }
+
+.Shutter-empty { margin: 24px 0; text-align: center; color: var(--muted-color); }
+.Shutter-more { margin: 14px 0 0; text-align: center; }
+
+// The lightbox: its own root on <body>, above everything Flarum draws.
+.Shutter-noScroll { overflow: hidden; }
+.ShutterLightbox {
+  position: fixed; inset: 0; z-index: calc(var(--zindex-modal) + 10);
+  display: grid; grid-template-columns: 1fr; grid-template-rows: 1fr auto;
+  background: rgba(8, 8, 10, 0.96); color: #eee;
+  &:focus { outline: none; }
+  &.has-info { grid-template-columns: 1fr 320px; @media @phone { grid-template-columns: 1fr; grid-template-rows: 1fr auto auto; } }
+}
+.ShutterLightbox-stage {
+  position: relative; display: flex; align-items: center; justify-content: center;
+  min-height: 0; padding: 16px; overflow: hidden; touch-action: pan-y;
+  @media @phone { padding: 8px 0; }
+}
+.ShutterLightbox-image {
+  max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain;
+  background-size: cover; background-position: center;
+  user-select: none;
+}
+.ShutterLightbox-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px; border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12); color: #fff; font-size: 18px; cursor: pointer;
+  &:hover, &:focus-visible { background: rgba(255, 255, 255, 0.25); }
+  &--prev { left: 12px; }
+  &--next { right: 12px; }
+  @media @phone { width: 36px; height: 36px; &--prev { left: 4px; } &--next { right: 4px; } }
+}
+.ShutterLightbox-bar {
+  grid-column: 1; display: flex; align-items: center; justify-content: flex-end; gap: 4px; padding: 6px 12px;
+  .Button { color: #eee; &:hover, &:focus-visible { background: rgba(255, 255, 255, 0.12); color: #fff; } }
+}
+.ShutterLightbox-counter { margin-right: auto; color: #aaa; font-variant-numeric: tabular-nums; }
+.ShutterLightbox-info {
+  grid-row: 1 / span 2; grid-column: 2;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 20px; overflow-y: auto;
+  background: var(--body-bg); color: var(--text-color);
+  @media @phone { grid-row: 3; grid-column: 1; max-height: 40vh; padding: 14px 16px; }
+  p { margin: 0; }
+}
+.ShutterLightbox-title { margin: 0; font-size: 18px; overflow-wrap: anywhere; }
+.ShutterLightbox-by, .ShutterLightbox-camera, .ShutterLightbox-tally { color: var(--muted-color); }
+.ShutterLightbox-by.is-hidden { font-style: italic; }
+.ShutterLightbox-caption { white-space: pre-line; overflow-wrap: anywhere; }
+.ShutterLightbox-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 10px; }
+.ShutterLightbox-voters { font-size: 13px; color: var(--muted-color); span { font-weight: 600; } }
+.ShutterLightbox-scoreButtons { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 6px; }
+.Shutter-scoreButton {
+  min-height: 36px; border: 1px solid var(--control-bg); border-radius: var(--border-radius);
+  background: var(--body-bg); color: var(--text-color); font-weight: 600; cursor: pointer;
+  &.is-active { background: var(--primary-color); border-color: var(--primary-color); color: var(--body-bg); }
+}
+
+// Modals.
+.ShutterDrop {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 160px; margin-bottom: 12px; padding: 12px;
+  border: 2px dashed var(--control-bg); border-radius: var(--border-radius);
+  cursor: pointer; text-align: center; color: var(--muted-color);
+  &:hover, &:focus-within { border-color: var(--primary-color); }
+  &.has-file { border-style: solid; }
+}
+.ShutterDrop-input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.ShutterDrop-preview { max-width: 100%; max-height: 280px; border-radius: var(--border-radius); }
+.ShutterSubmitModal-rules { white-space: pre-line; color: var(--muted-color); }
+.ShutterSubmitModal-problem { color: var(--validation-error-color); }
+
+.ShutterEditorModal {
+  fieldset { margin: 0 0 18px; padding: 0; border: 0; }
+  legend { margin-bottom: 8px; font-weight: 700; color: var(--heading-color); }
+  .Form-group { margin-bottom: 16px; }
+  .Checkbox { margin: 8px 0; }
+}
+.ShutterEditor-dates { display: grid; gap: 10px; grid-template-columns: repeat(3, 1fr); @media @phone { grid-template-columns: 1fr; } label { display: flex; flex-direction: column; gap: 4px; } }
+.ShutterEditor-number { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; input { width: 90px; } }
+.ShutterEditor-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; @media @phone { grid-template-columns: 1fr; } }
+.ShutterEditor-wide { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; }
+.ShutterEditor-sub { display: block; margin-top: 10px; font-weight: 600; }
+.ShutterEditor-groups { display: flex; flex-wrap: wrap; gap: 4px 14px; label { font-weight: normal; } .helpText { flex-basis: 100%; margin: 0; } }
+.ShutterEditor-scoring { display: flex; flex-direction: column; gap: 4px; label { font-weight: normal; } }
+.ShutterEditor-buttons { display: flex; flex-wrap: wrap; gap: 8px; .Button--danger { margin-left: auto; } }
+
+.ShutterIntegrity-entry { margin-top: 16px; header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; } }
+.ShutterIntegrity-count { margin-left: auto; color: var(--muted-color); }
+.ShutterIntegrity-table { width: 100%; margin-top: 6px; td { padding: 4px 6px; border-top: 1px solid var(--control-bg); vertical-align: top; } tr.is-voided td:first-child { text-decoration: line-through; color: var(--muted-color); } }
+.ShutterIntegrity-reason { display: inline-block; margin: 0 4px 4px 0; padding: 1px 8px; border-radius: 999px; background: var(--control-bg); font-size: 12px; }
+
+// /contests
+.ShutterContestsPage-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 14px; h2 { margin: 0; } }
+.ShutterContests { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.ShutterContest {
+  display: flex; flex-direction: column; height: 100%;
+  border: 1px solid var(--control-bg); border-radius: var(--border-radius); overflow: hidden;
+  color: var(--text-color);
+  &:hover { text-decoration: none; border-color: var(--primary-color); }
+}
+.ShutterContest-cover {
+  display: flex; align-items: center; justify-content: center; aspect-ratio: 16 / 9;
+  background: var(--control-bg) center / cover; color: var(--muted-color); font-size: 32px;
+  img { width: 100%; height: 100%; object-fit: cover; }
+}
+.ShutterContest-body { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 10px 12px 12px; }
+.ShutterContest-title { font-size: 15px; overflow-wrap: anywhere; }
+.ShutterContest-meta { color: var(--muted-color); font-size: 13px; }
